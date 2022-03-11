@@ -34,7 +34,7 @@ sample_n(df, size=10)
 df %>% group_by(sex) %>%
   count()
 
-df2<-read.csv("penguins_lter.csv")
+df2<-read.csv("penguins_lter.csv", sep=",")
 
 colnames(df2)
 df2<-df2[-c(2,4,6,7,17)] # Drop columns
@@ -46,30 +46,40 @@ colnames(df2)<-column_names #rename columns
 colnames(df2)
 
 df2$species
+library(data.table)
+df3<-copy(df2)
 
-#str_split(df2$species, " ")
+df2$species
+
 #Split the column
-df2<-df2 %>% separate(species, c("species","1","2","3"))
-df2<-df2[-c(3,4,5)]
+df2<-df2 %>% 
+  separate(species,c("species"))
 colnames(df2)
+
 #Check Data Types
 str(df2)
+
 #Convert date
 library(lubridate)
 #df2$date_egg<-as.POSIXct(df2$date_egg, format='%m/%d/%y')
 df2$date_egg<-mdy(df2$date_egg)
 df2$study_day<-df2$date_egg-min(df2$date_egg)
 
+df2$study_day
+
 #Get rid of incomplete cases
 df2<-df2[complete.cases(df2), ]
+
 df2 %>% group_by(sex) %>%
   count()
+
 df2<-subset(df2, sex!=".")
 df2<-subset(df2, sex!="")
 
 write.csv(df2, "processed_penguins.csv", row.names=F)
 df3<-read.csv("processed_penguins.csv")
 head(df3)
+
 
 #Plotting with R
 ggplot(df2, aes(bill_length_mm, flipper_length_mm, color=sex)) +
@@ -80,14 +90,16 @@ ggplot(df2, aes(bill_length_mm)) +
   geom_boxplot() + coord_flip()
 
 ggplot(data=df2) +
-  geom_line(mapping=aes(x=flipper_length_mm, bill_length_mm))
+  geom_point(mapping=aes(x=flipper_length_mm, bill_length_mm))
 
 ggplot(data=df2) +
-  geom_smooth(mapping=aes(x=flipper_length_mm, bill_length_mm)) +
+  geom_smooth(mapping=aes(x=flipper_length_mm, y=bill_length_mm)) +
   ggtitle("My Line Chart") 
 
 mycounts<-df2 %>% group_by(species) %>%
   count() 
+
 mycounts
-ggplot(data=mycounts, aes(x=species)) +
-  geom_bar() + ggtitle("Bar Chart")
+
+ggplot(data=mycounts, aes(x=species,y=n)) +
+  geom_bar(stat="identity") + ggtitle("Bar Chart")
